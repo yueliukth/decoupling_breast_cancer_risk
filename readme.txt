@@ -7,8 +7,8 @@ Implementation of paper ‘Decoupling Inherent Risk and Early Cancer Signs in Im
 Scripts to support the main execution script ‘main_run.py’
 	exp.py 				Define model hyperparameters 
 	train_network.py		Define training process
-	eval_network.py		Define testing process
-	dataset_functions.py	Define dataset helping functions
+	eval_network.py			Define testing process
+	dataset_functions.py		Define dataset helping functions
 	train_functions.py		Define training helping functions
 	model_functions.py		Define ResNet model
 
