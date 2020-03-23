@@ -47,7 +47,7 @@ def main(_):
       split_train0_imgs, split_train0_labels, split_train0_ages, train0_iterator, split_train1_imgs, split_train1_labels, split_train1_ages, train1_iterator, split_valall_imgs, split_valall_labels, split_valall_ages, valall_iterator = data_prep_network(FLAGS.dataset_dir, FLAGS.trainpos_dir, FLAGS.trainneg_dir, FLAGS.valall_dir, FLAGS.num_gpus)
 
     # define train process   
-    grads, total_loss_train, cls_loss_train, age_loss_train, rgl_loss, train_imgs, train_labels, activations = get_train(split_train0_imgs, split_train0_labels, split_train0_ages, split_train1_imgs, split_train1_labels, split_train1_ages, FLAGS.num_gpus, FLAGS.age_option, FLAGS.weight_decay, opt)
+    grads, total_loss_train, cls_loss_train, age_loss_train, rgl_loss, train_imgs, train_labels, activations = get_train(split_train0_imgs, split_train0_labels, split_train0_ages, split_train1_imgs, split_train1_labels, split_train1_ages, FLAGS.num_gpus, FLAGS.weight_decay, opt)
     
     optimizer = opt.apply_gradients(grads, global_step=global_step)
 
@@ -61,7 +61,7 @@ def main(_):
     tf.summary.image('train_cropped_image', train_imgs, 1)
 
     # define val process
-    softmax_list_val, labels_list_val, val_loss, val_age_loss, val_labels, logits_val = get_val(split_valall_imgs, split_valall_labels, split_valall_ages, FLAGS.num_gpus, FLAGS.age_option) 
+    softmax_list_val, labels_list_val, val_loss, val_age_loss, val_labels, logits_val = get_val(split_valall_imgs, split_valall_labels, split_valall_ages, FLAGS.num_gpus) 
 
     # model savers
     model_vars = tf.trainable_variables()

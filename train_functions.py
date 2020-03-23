@@ -90,11 +90,10 @@ def define_lr_opt(global_step, steps_per_epoch, optimizer, learning_rate_scratch
     opt = tf.train.MomentumOptimizer(learning_rate, momentum=0.9)
   return learning_rate, opt
   
-def get_train(split_train0_imgs, split_train0_labels, split_train0_ages, split_train1_imgs, split_train1_labels, split_train1_ages, num_gpus, age_option, weight_decay, opt):
+def get_train(split_train0_imgs, split_train0_labels, split_train0_ages, split_train1_imgs, split_train1_labels, split_train1_ages, num_gpus, weight_decay, opt):
   tower_grads = []
   total_loss_list_train = []
   cls_loss_list_train = []
-  age_loss_list_train = []
   with tf.variable_scope(tf.get_variable_scope()):
     for i in xrange(num_gpus):
       with tf.device('/device:GPU:%d' % i):
@@ -107,22 +106,12 @@ def get_train(split_train0_imgs, split_train0_labels, split_train0_ages, split_t
           cls_loss = tf.losses.softmax_cross_entropy(tf.one_hot(train_labels,2), logits,label_smoothing=FLAGS.label_smoothing)
         elif 'sigmoid' in exp_name:
           cls_loss = tf.losses.sigmoid_cross_entropy(train_labels, logits,label_smoothing=FLAGS.label_smoothing)
-
-        if age_option is not None:
-          age_loss = tf.losses.softmax_cross_entropy(tf.one_hot(train_labels,2), logits_ages)
-
         if weight_decay != None:
           if i == 0:
             rgl_loss = weight_decay * tf.add_n([tf.nn.l2_loss(tf.cast(v, tf.float32)) for v in tf.trainable_variables()])
-          if age_option is not None:
-            total_loss = cls_loss + rgl_loss + age_loss
-          else:
-            total_loss = cls_loss + rgl_loss
-        else:
-          if age_option is not None:
-            total_loss = cls_loss + age_loss
-          else:
-            total_loss = cls_loss
+          total_loss = cls_loss + rgl_loss
+        else: 
+          total_loss = cls_loss
 
         # reuse variables for the next tower
         tf.get_variable_scope().reuse_variables()
@@ -132,21 +121,15 @@ def get_train(split_train0_imgs, split_train0_labels, split_train0_ages, split_t
 
         total_loss_list_train.append(total_loss)
         cls_loss_list_train.append(cls_loss)
-        if age_option is not None:
-          age_loss_list_train.append(age_loss)
-
   grads = average_gradients(tower_grads)
   total_loss_train = tf.math.reduce_mean(total_loss_list_train)
   cls_loss_train = tf.math.reduce_mean(cls_loss_list_train)
-  if age_option is not None:
-    age_loss_train = tf.math.reduce_mean(age_loss_list_train)
-  else:
-    age_loss_train = 0
+  
+  age_loss_train = 0
   return grads, total_loss_train, cls_loss_train, age_loss_train, rgl_loss, train_imgs, train_labels, activations
 
-def get_val(split_valall_imgs, split_valall_labels, split_valall_ages, num_gpus, age_option):
+def get_val(split_valall_imgs, split_valall_labels, split_valall_ages, num_gpus):
   loss_list_val = []
-  age_loss_list_val = []
   labels_list_val = []
   softmax_list_val = []
   logits_list_val = []
@@ -173,18 +156,10 @@ def get_val(split_valall_imgs, split_valall_labels, split_valall_ages, num_gpus,
         labels_list_val.append(val_labels)
         softmax_list_val.append(softmax_val)
         logits_list_val.append(logits_val)
-
-        if age_option is not None:
-          age_loss_val = tf.losses.softmax_cross_entropy(tf.one_hot(val_labels,2), logits_ages_val)
-          age_loss_list_val.append(age_loss_val)
-
   labels_list_val = tf.reshape(tf.stack(labels_list_val),[-1])
   softmax_list_val = tf.reshape(tf.stack(softmax_list_val),[-1])
   val_loss = tf.math.reduce_mean(loss_list_val)
-  if age_option is not None:
-    val_age_loss = tf.math.reduce_mean(age_loss_list_val)
-  else:
-    val_age_loss = 0
+  val_age_loss = 0
   return softmax_list_val, labels_list_val, val_loss, val_age_loss, val_labels, logits_list_val
 
 
