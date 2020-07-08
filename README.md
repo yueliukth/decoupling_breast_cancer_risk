@@ -1,4 +1,4 @@
-**Repository for MICCAI submission Paper 2196**
+**Repository for MICCAI submission**
 
 **"Decoupling Inherent Risk and Early Cancer Signs in Image-based Breast Cancer Risk Models”.** 
 
